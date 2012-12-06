@@ -12,25 +12,20 @@
 //  27 (ADC4): Current sense
 //  28 (ADC5): Vdd divided by 10
 
+#define BUCK_SCALE 15576  // 1298 * buck converter output voltage
+
 int main(void) {
   DDRB = 0xFF;  // output
   DDRC = 0x00;  // input
   DDRD = 0xFF;  // output
   
   setup_pwm();
-
-  // Configure ADC to grab 8 bits to ADCH with a /128 prescaler
-  ADMUX = 1<<REFS0 | 1<<ADLAR | 5;
-  ADCSRA |= 1<<ADIE | 1<<ADEN | 1<<ADPS0 | 1<<ADPS1 | 1<<ADPS2;
-
+  setup_adc();
   sei();
-  ADCSRA |= 1<<ADSC;
-  set_boost(128);
-  for (;;);
-}
 
-ISR(ADC_vect) {
-  unsigned int duty = 15729 / ADCH;  // magic number for 12 volts
-  set_buck(duty < BUCK_MAX ? duty : BUCK_MAX);
-  ADCSRA |= 1<<ADSC;  // start conversion
+  set_boost(128);
+  for (;;) {
+    uint16_t buck_setting = BUCK_SCALE / get_vdd();
+    set_buck((buck_setting <= 255) ? buck_setting : 255);
+  }
 }

@@ -21,7 +21,7 @@ MCU = atmega328p
 TARGET = main
 
 # Other C files
-FILES = pwm.c
+FILES = adc.c pwm.c
 
 # Programming hardware: type avrdude -c ?
 # to get a full listing.
