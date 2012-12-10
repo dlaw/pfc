@@ -6,6 +6,8 @@
 #include "lookup.h"
 #include "main.h"
 
+#define SMOOTH_SHIFT 7
+
 // PINOUT
 //  05 (OC2B): boost
 //  11 (OC0B): buck low side
@@ -22,9 +24,20 @@ int main(void) {
   setup_adc();
   sei();
 
-  set_boost(50);
+  unsigned long boost_val = 0;
+  char desired_vdd = 200;  // 40 volts
   for (;;) {
     set_buck(buck_duty[get_vdd()]);
-    PORTB ^= 1;
+    if (get_vdd() == 255) {
+      // disallow capacitor explosions
+      set_boost(0);
+      _delay_us(1000);
+    }
+    if (get_vdd() > desired_vdd && boost_val > 0)
+      boost_val--;
+    if (get_vdd() < desired_vdd && (boost_val >> SMOOTH_SHIFT) < BOOST_MAX)
+      boost_val++;
+    set_boost(boost_val >> SMOOTH_SHIFT);
+    PORTB ^= 1;  // watch how quickly this loop runs
   }
 }

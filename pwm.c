@@ -16,6 +16,7 @@ inline void setup_pwm(void) {
   TCCR2A |= 1<<WGM20 | 1<<WGM21 | 1<<COM2B0 | 1<<COM2B1;
   TCCR2B |= 1<<CS20;
   TCNT1 = BUCK_DELAY;  // shoot-through delay for the buck
+  TCNT2 = 128;  // run boost out of phase for minor efficiency increase
   OCR0B = OCR1B = OCR2B = 255;  // start with buck and boost off
   GTCCR &= ~(1<<TSM);  // unfreeze timers
 }
