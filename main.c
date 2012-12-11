@@ -47,6 +47,7 @@ int main(void) {
       // This block runs exactly once per zero crossing.
       PORTB ^= 2;  // to watch what happens
       cur_cs_ratio = cs_ratio[get_vdd()];
+      i = 0; // no integral windup allowed!
     }
     /*
     pfc_count++;
