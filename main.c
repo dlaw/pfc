@@ -24,29 +24,25 @@ int main(void) {
   sei();
 
   char ratio = 0;
-  unsigned short desired_cs;
-  short cs_p, cs_i = 0, boost_val;
+  short cs_p, cs_i = 0;
   for (;;) {
+    // Set the buck converter (open-loop from Vdd)
     set_buck(buck_duty[get_vdd()]);
+    
+    // Prevent Vdd from ever exceeding 50 volts
     if (get_vdd() == 255) {
-      // disallow capacitor explosions
       set_boost(0);
       _delay_us(1000);
     }
+
+    // Reset ratio and integrator at each zero crossing
     if (get_vin() < ZERO_CROSSING_THRESHHOLD) {
       ratio = cs_ratio[get_vdd()];
-      cs_i = 0; // no integral windup allowed!
+      cs_i = 0;
     }
 
-    desired_cs = (get_vin() * cur_cs_ratio) / 64;
-    if (desired_cs > 255) desired_cs = 255;
-
-    cs_i += (cs_p = desired_cs - get_cs());
-    if (i & 0x40) i &= 0xC0;  // if (abs(i) >= 8192) abs(i) = 8192;
-    boost_val = (cs_i >> 5) + (cs_p << 1) + 128;  // magic feedback
-    if (boost_val < 0) boost_val = 0;
-    if (boost_val > BOOST_MAX) boost_val = BOOST_MAX;
-    set_boost(boost_val);
-    PORTB ^= 1;  // watch how quickly this loop runs
+    // Magic PI feedback loop for current sense
+    cs_i += (cs_p = ((get_vin() * ratio) >> 6) - get_cs());
+    set_boost((cs_i >> 5) + (cs_p << 1) + 128);
   }
 }
