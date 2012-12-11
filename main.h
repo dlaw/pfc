@@ -1,3 +1,6 @@
+// main.c
+#define ZERO_CROSSING_THRESHHOLD 35
+
 // adc.c
 void setup_adc(void);
 char get_vin(void);

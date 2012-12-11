@@ -6,11 +6,6 @@
 #include "lookup.h"
 #include "main.h"
 
-#define ZERO_CROSSING_THRESHHOLD 40
-#define ZERO_CROSSING_CNT 3
-
-#define BOOST_SMOOTH 1
-
 // PINOUT
 //  05 (OC2B): boost
 //  11 (OC0B): buck low side
@@ -28,13 +23,9 @@ int main(void) {
   setup_adc();
   sei();
 
-  char cur_cs_ratio = 0;
+  char ratio = 0;
   unsigned short desired_cs;
-  char zc_cnt;
-  
-  unsigned short pfc_count = 0;
-
-  short err, i, ii, boost_val;
+  short cs_p, cs_i = 0, boost_val;
   for (;;) {
     set_buck(buck_duty[get_vdd()]);
     if (get_vdd() == 255) {
@@ -42,43 +33,20 @@ int main(void) {
       set_boost(0);
       _delay_us(1000);
     }
-    if (get_vin() >= ZERO_CROSSING_THRESHHOLD) zc_cnt = 0;
-    if (zc_cnt++ == ZERO_CROSSING_CNT) {
-      // This block runs exactly once per zero crossing.
-      PORTB ^= 2;  // to watch what happens
-      cur_cs_ratio = cs_ratio[get_vdd()];
-      i = 0; // no integral windup allowed!
+    if (get_vin() < ZERO_CROSSING_THRESHHOLD) {
+      ratio = cs_ratio[get_vdd()];
+      cs_i = 0; // no integral windup allowed!
     }
-    /*
-    pfc_count++;
-    if (pfc_count < 10000) {
-      set_boost(128);
-      continue;
-    }
-    if (pfc_count == 20000) pfc_count = 0;
-    */
 
-    desired_cs = get_vin();
-    desired_cs *= cur_cs_ratio;
-    desired_cs /= 64;
+    desired_cs = (get_vin() * cur_cs_ratio) / 64;
     if (desired_cs > 255) desired_cs = 255;
 
-    // THIS CS CODE WORKS "OKAY"
-    err = desired_cs - get_cs();
-    i += err;
-    short imax = 8191;
-    if (i > imax) i = imax;
-    if (i < -imax) i = -imax;
-
-    boost_val = i / 2;
-    boost_val += err * 40;
-    
-    boost_val >>= 4;
-    boost_val += 128;
+    cs_i += (cs_p = desired_cs - get_cs());
+    if (i & 0x40) i &= 0xC0;  // if (abs(i) >= 8192) abs(i) = 8192;
+    boost_val = (cs_i >> 5) + (cs_p << 1) + 128;  // magic feedback
     if (boost_val < 0) boost_val = 0;
     if (boost_val > BOOST_MAX) boost_val = BOOST_MAX;
     set_boost(boost_val);
-
     PORTB ^= 1;  // watch how quickly this loop runs
   }
 }
