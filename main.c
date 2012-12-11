@@ -79,19 +79,5 @@ int main(void) {
     set_boost(boost_val);
 
     PORTB ^= 1;  // watch how quickly this loop runs
-
-    // CURRENT SENSE RATIO IS A FUNCTION OF VDD
-    //   (open loop: chosen at each zero crossing)
-    // DESIRED CURRENT IS RATIO TIMES VIN
-    // FEEDBACK LOOP TO MAKE CS = DESIRED_CS
-    
-    // Implementation plan:
-    // 1. ZERO CROSSING DETECTION
-    //   (toggle port b to watch)
-    // 2. CURRENT SENSE FEEDBACK CONTROL
-    //   (switch between 0.5A and 1A every second)
-    // 3. RUNNING WITH CONSTANT CURRENT SENSE RATIO
-    //   (output will saturate high or low)
-    // 4. RUNNING WITH VARIABLE CURRENT SENSE RATIO
   }
 }

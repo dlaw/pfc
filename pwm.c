@@ -3,10 +3,10 @@
 
 #include "main.h"
 
-// Initialize timers for 8 bit PWM at 31.25 kHz:
-// timer 0 non-inverting output on OC0B (buck low)
-// timer 1 inverting output on OC1B (buck high)
-// timer 2 inverting output on OC2B (boost)
+// Initialize timers for 8 bit PWM
+// timer 0: 31 kHz, non-inverting output on OC0B (buck low)
+// timer 1: 31 kHz, inverting output on OC1B (buck high)
+// timer 2: 124 kHz, inverting output on OC2B (boost)
 inline void setup_pwm(void) {
   GTCCR |= 1<<TSM | 1<<PSRSYNC | 1<<PSRASY;  // freeze timers
   TCCR0A |= 1<<WGM00 | 1<<WGM01 | 1<<COM0B1;
