@@ -11,7 +11,7 @@ static volatile char adc_data[NCHAN];
 inline void setup_adc(void) {
   // Configure ADC to grab 8 bits to ADCH with a /128 clock prescaler
   ADMUX = 1<<REFS0 | 1<<ADLAR;
-  ADCSRA |= 1<<ADIE | 1<<ADEN | 1<<ADPS0 | 1<<ADPS1 | 1<<ADPS2;
+  ADCSRA |= 1<<ADIE | 1<<ADEN | 1<<ADPS1 | 1<<ADPS2;
   ADMUX |= adc_chan[0];
   ADCSRA |= 1<<ADSC;
 }
