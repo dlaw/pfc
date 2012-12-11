@@ -6,15 +6,6 @@
 #include "lookup.h"
 #include "main.h"
 
-// PINOUT
-//  05 (OC2B): boost
-//  11 (OC0B): buck low side
-//  15 (PB1) : PFC enable
-//  16 (OC1B): buck high side
-//  26 (ADC3): Vin divided by 7.2
-//  27 (ADC4): Current sense
-//  28 (ADC5): Vdd divided by 10
-
 int main(void) {
   // Set up IO pins
   DDRB = 0xFD;
