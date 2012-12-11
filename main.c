@@ -32,7 +32,7 @@ int main(void) {
   unsigned short desired_cs;
   char zc_cnt;
   
-  unsigned short cs_count = 0;
+  unsigned short pfc_count = 0;
 
   short err, i, ii, boost_val;
   for (;;) {
@@ -45,20 +45,16 @@ int main(void) {
     if (get_vin() >= ZERO_CROSSING_THRESHHOLD) zc_cnt = 0;
     if (zc_cnt++ == ZERO_CROSSING_CNT) {
       // This block runs exactly once per zero crossing.
-      // PORTB ^= 2;  // to watch what happens
+      PORTB ^= 2;  // to watch what happens
       cur_cs_ratio = cs_ratio[get_vdd()];
     }
     /*
-    cs_count++;
-    if (cs_count == 1000) {
-      PORTB |= 2;
-      desired_cs = 50;
+    pfc_count++;
+    if (pfc_count < 10000) {
+      set_boost(128);
+      continue;
     }
-    if (cs_count == 2000) {
-      PORTB &= ~2;
-      desired_cs = 20;
-      cs_count = 0;
-    }
+    if (pfc_count == 20000) pfc_count = 0;
     */
 
     desired_cs = get_vin();
@@ -69,13 +65,12 @@ int main(void) {
     // THIS CS CODE WORKS "OKAY"
     err = desired_cs - get_cs();
     i += err;
-    short imax = 4192;
+    short imax = 8191;
     if (i > imax) i = imax;
     if (i < -imax) i = -imax;
 
-    //    boost_val = err + i + d;
     boost_val = i / 2;
-    boost_val += err * 16;
+    boost_val += err * 40;
     
     boost_val >>= 4;
     boost_val += 128;
