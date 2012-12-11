@@ -15,16 +15,18 @@
 //  28 (ADC5): Vdd divided by 10
 
 int main(void) {
-  DDRB = 0xFF;  // output
-  DDRC = 0x00;  // input
-  DDRD = 0xFF;  // output
+  // Set up IO pins
+  DDRB = 0xFD;
+  PORTB |= 2;
+  DDRD = 0xFF;
   
   setup_pwm();
   setup_adc();
   sei();
 
-  char ratio = 0;
-  short cs_p, cs_i = 0;
+  // Time to correct the power factor!
+  char ratio = 0;  // desired current-to-voltage ratio
+  short p, i = 0;  // current feedback loop accumulators
   for (;;) {
     // Set the buck converter (open-loop from Vdd)
     set_buck(buck_duty[get_vdd()]);
@@ -36,13 +38,13 @@ int main(void) {
     }
 
     // Reset ratio and integrator at each zero crossing
-    if (get_vin() < ZERO_CROSSING_THRESHHOLD) {
+    if (get_vin() < 35) {
       ratio = cs_ratio[get_vdd()];
-      cs_i = 0;
+      i = 0;
     }
 
     // Magic PI feedback loop for current sense
-    cs_i += (cs_p = ((get_vin() * ratio) >> 6) - get_cs());
-    set_boost((cs_i >> 5) + (cs_p << 1) + 128);
+    i += (p = ((get_vin() * ratio) >> 6) - get_cs());
+    set_boost((PINB & 2) ? ((i >> 5) + (p << 1) + 128) : 128);
   }
 }
