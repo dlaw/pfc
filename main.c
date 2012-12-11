@@ -35,6 +35,7 @@ int main(void) {
     if (get_vdd() == 255) {
       set_boost(0);
       _delay_us(1000);
+      i = 0;
     }
 
     // Reset ratio and integrator at each zero crossing
